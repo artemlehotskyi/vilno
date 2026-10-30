@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.db import get_db
-from app.models import Lot
+from app.models import Lot, ParkingSession
 from app.sim.occupancy import simulated_busy
 
 router = APIRouter(prefix="/api")
@@ -36,18 +36,21 @@ class LotOut(BaseModel):
     free_estimate: int | None = None
 
 
-def to_out(lot: Lot) -> LotOut:
+def to_out(lot: Lot, active: int = 0) -> LotOut:
     out = LotOut.model_validate(lot)
     if lot.is_paid:  # для безкоштовних місткість невідома майже всюди, оцінку не даємо
         out.sim_busy = simulated_busy(lot.id, lot.places, settings.SIM_SEED)
         if out.sim_busy is not None:
-            out.free_estimate = max(0, lot.places - out.sim_busy)
+            out.free_estimate = max(0, lot.places - out.sim_busy - active)  # мінус реальні активні сесії
     return out
 
 
 @router.get("/lots", response_model=list[LotOut])
 def list_lots(db: Session = Depends(get_db)):
-    return [to_out(x) for x in db.scalars(select(Lot).order_by(Lot.id))]
+    active = dict(db.execute(
+        select(ParkingSession.lot_id, func.count()).where(ParkingSession.status == "active").group_by(ParkingSession.lot_id)
+    ).all())
+    return [to_out(x, active.get(x.id, 0)) for x in db.scalars(select(Lot).order_by(Lot.id))]
 
 
 @router.get("/lots/{lot_id}", response_model=LotOut)
@@ -55,4 +58,6 @@ def get_lot(lot_id: int, db: Session = Depends(get_db)):
     lot = db.get(Lot, lot_id)
     if lot is None:
         raise HTTPException(404, "майданчик не знайдено")
-    return to_out(lot)
+    active = db.scalar(select(func.count()).select_from(ParkingSession).where(
+        ParkingSession.lot_id == lot_id, ParkingSession.status == "active"))
+    return to_out(lot, active or 0)

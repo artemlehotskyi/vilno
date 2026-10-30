@@ -60,3 +60,9 @@ def advance(db: Session, minutes: float, real: datetime | None = None) -> dateti
 
 def reset(db: Session, real: datetime | None = None) -> datetime:
     return set_clock(db, datetime.fromisoformat(settings.DEMO_CLOCK_START), real)
+
+
+def floor_minute(dt: datetime) -> datetime:
+    """Тарифікація йде по хвилинах за годинником: секунди відкидаємо (початок і кінець вниз).
+    Без цього реальний час, що тече між «+90 хв» і «фініш», дав би 91 хв замість 90."""
+    return dt.replace(second=0, microsecond=0)
