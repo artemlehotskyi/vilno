@@ -16,6 +16,7 @@
 backend/app/{api,models,services,sim}/   backend/tests/
 frontend/src/{pages,components,api,lib}/
 data/raw/          # оригінали з data.gov.ua, НЕ редагувати
+data/geo_overrides.json   # координати для рядків набору без них (#65–66), з походженням
 scripts/           # import_lots.py, reset_db.py
 ```
 Імпорт пише прямо в SQLite. `data/processed/` не створювати. Нові верхньорівневі папки без потреби не додавати.

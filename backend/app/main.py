@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api import lots
 from app.db import init_db
 
 
@@ -12,6 +13,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="VILNO", lifespan=lifespan)
+app.include_router(lots.router)
 
 
 @app.get("/api/health")
