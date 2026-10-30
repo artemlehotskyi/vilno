@@ -6,3 +6,8 @@ python-dotenv==1.2.4
 python-multipart==0.0.32
 httpx==0.28.1
 pytest==9.2.0
+fast-alpr==0.4.0
+onnxruntime==1.31.1
+ultralytics==8.4.194
+numpy==2.5.4
+opencv-python-headless==5.0.0.93

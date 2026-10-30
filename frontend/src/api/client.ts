@@ -122,3 +122,16 @@ export interface Dispatch {
 }
 
 export const getDispatch = () => api<Dispatch>('/stats/dispatch')
+
+export interface Recognition {
+  enabled: boolean // false → CV вимкнено, лише ручний ввід
+  car_present: boolean | null // null → детектор недоступний
+  plate: string | null // впевнений валідний номер, інакше null
+  plate_confidence: number | null
+}
+
+export const recognizePhoto = (image: Blob) => {
+  const form = new FormData()
+  form.append('image', image, 'photo.jpg')
+  return api<Recognition>('/recognize', { method: 'POST', body: form })
+}

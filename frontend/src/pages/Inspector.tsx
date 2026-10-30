@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getLots, postScan, type Lot, type ScanOut } from '../api/client'
+import PhotoButton from '../components/PhotoButton'
 import PlateInput from '../components/PlateInput'
 import ScanResultCard from '../components/ScanResultCard'
 import { ZONE_LABEL } from '../lib/format'
@@ -13,6 +14,7 @@ export default function Inspector() {
   const [lots, setLots] = useState<Lot[]>([])
   const [lotId, setLotId] = useState<number | null>(() => Number(localStorage.getItem(LOT_KEY)) || null)
   const [plate, setPlate] = useState('')
+  const [fromCv, setFromCv] = useState(false) // номер підставлено з CV (і не змінено людиною)
   const [result, setResult] = useState<ScanOut | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +37,7 @@ export default function Inspector() {
     setBusy(true)
     setError(null)
     try {
-      setResult(await postScan(plateOrNull, lot.id))
+      setResult(await postScan(plateOrNull, lot.id, plateOrNull && fromCv ? 'cv' : 'manual'))
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -46,6 +48,7 @@ export default function Inspector() {
   const reset = () => {
     setResult(null)
     setPlate('')
+    setFromCv(false)
     setError(null)
   }
 
@@ -81,7 +84,24 @@ export default function Inspector() {
       ) : (
         <div style={card}>
           <div style={{ marginBottom: 8, fontWeight: 600 }}>Номер авто (підтвердіть самі)</div>
-          <PlateInput value={plate} onChange={setPlate} onEnter={() => check(plate)} />
+          <PhotoButton
+            requireCar={false}
+            label="📷 Сфотографувати номер"
+            onRecognized={(n) => {
+              if (n.plate) {
+                setPlate(n.plate)
+                setFromCv(true)
+              }
+            }}
+          />
+          <PlateInput
+            value={plate}
+            onChange={(v) => {
+              setPlate(v)
+              setFromCv(false)
+            }}
+            onEnter={() => check(plate)}
+          />
           {error && <div style={errorBox}>{error}</div>}
           <button
             style={{ ...primaryBtn, opacity: isValidPlate(plate) ? 1 : 0.5 }}

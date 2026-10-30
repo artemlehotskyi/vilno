@@ -3,6 +3,7 @@ import { getLots, getSession, startSession, type Lot, type SessionOut } from '..
 import LotSummary from '../components/LotSummary'
 import LotsMap from '../components/LotsMap'
 import MapLegend from '../components/MapLegend'
+import PhotoButton from '../components/PhotoButton'
 import PlateInput from '../components/PlateInput'
 import SessionView from '../components/SessionView'
 import { isValidPlate } from '../lib/plate'
@@ -74,6 +75,7 @@ export default function Driver() {
         <div style={{ ...card, marginBottom: 12 }}>
           <LotSummary lot={selected} />
         </div>
+        <PhotoButton requireCar label="📷 Сфотографувати авто" onRecognized={(n) => n.plate && setPlate(n.plate)} />
         <PlateInput value={plate} onChange={setPlate} onEnter={start} autoFocus />
         {error && <div style={errorBox}>{error}</div>}
         <button style={{ ...primaryBtn, marginTop: 8, opacity: isValidPlate(plate) ? 1 : 0.5 }} disabled={!isValidPlate(plate) || busy} onClick={start}>
