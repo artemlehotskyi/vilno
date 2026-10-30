@@ -28,3 +28,49 @@ export interface Lot {
 }
 
 export const getLots = () => api<Lot[]>('/lots')
+
+export interface DayPart {
+  day: string
+  minutes: number
+  raw: number
+  amount: number
+  cap: number | null
+  capped: boolean
+}
+
+export interface SessionOut {
+  id: string
+  lot_id: number
+  status: 'active' | 'finished' | 'paid'
+  started_at: string
+  ended_at: string | null
+  now: string // демо-час сервера
+  minutes: number
+  amount_uah: number
+  is_final: boolean
+  breakdown: DayPart[]
+  payment_ref: string | null
+}
+
+export interface Clock {
+  now: string
+  is_demo_shifted: boolean
+}
+
+const JSON_HEADERS = { 'Content-Type': 'application/json' }
+
+export const startSession = (plate: string, lot_id: number) =>
+  api<SessionOut>('/sessions', { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ plate, lot_id }) })
+export const getSession = (id: string) => api<SessionOut>(`/sessions/${id}`)
+export const finishSession = (id: string) => api<SessionOut>(`/sessions/${id}/finish`, { method: 'POST' })
+export const paySession = (id: string) => api<SessionOut>(`/sessions/${id}/pay`, { method: 'POST' })
+
+export const getClock = () => api<Clock>('/clock')
+export const demoAdvance = (token: string, minutes: number) =>
+  api<Clock>('/demo/clock', {
+    method: 'POST',
+    headers: { ...JSON_HEADERS, 'X-Demo-Token': token },
+    body: JSON.stringify({ advance_minutes: minutes }),
+  })
+export const demoReset = (token: string) =>
+  api<Clock>('/demo/reset', { method: 'POST', headers: { 'X-Demo-Token': token } })

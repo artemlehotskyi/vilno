@@ -9,7 +9,7 @@ export default function MapLegend() {
   return (
     <div
       style={{
-        position: 'absolute', left: 8, bottom: 22, zIndex: 1000, background: 'rgba(255,255,255,.94)',
+        position: 'absolute', right: 8, top: 8, zIndex: 1000, background: 'rgba(255,255,255,.94)',
         padding: '6px 10px', borderRadius: 8, fontSize: 12, boxShadow: '0 1px 4px rgba(0,0,0,.25)',
       }}
     >

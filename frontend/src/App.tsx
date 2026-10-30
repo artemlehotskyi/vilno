@@ -2,6 +2,7 @@ import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import Driver from './pages/Driver'
 import Inspector from './pages/Inspector'
 import City from './pages/City'
+import DemoPanel from './components/DemoPanel'
 
 const tabs = [
   { to: '/driver', label: 'Водій' },
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/city" element={<City />} />
         </Routes>
       </main>
+      <DemoPanel />
     </div>
   )
 }
