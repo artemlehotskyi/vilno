@@ -1,0 +1,27 @@
+# секрети
+.env
+.env.*
+!.env.example
+
+# БД
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node
+node_modules/
+frontend/dist/
+
+# CV-моделі (завантажуються при першому запуску)
+*.pt
+*.onnx
+
+# ОС / редактори
+.DS_Store
+.obsidian/
