@@ -74,3 +74,19 @@ export const demoAdvance = (token: string, minutes: number) =>
   })
 export const demoReset = (token: string) =>
   api<Clock>('/demo/reset', { method: 'POST', headers: { 'X-Demo-Token': token } })
+
+export type ScanStatus = 'active' | 'unpaid' | 'closed_but_present' | 'unknown'
+
+export interface ScanOut {
+  status: ScanStatus
+  paid_now: boolean // чи діє зараз платне паркування на лоті
+  minutes_since_close: number | null
+  grace_after_close: boolean
+  session_on_other_lot: boolean
+  recheck_after_min: number | null
+  lot_id: number
+  scanned_at: string
+}
+
+export const postScan = (plate: string | null, lot_id: number, ocr_source: 'manual' | 'cv' = 'manual') =>
+  api<ScanOut>('/scans', { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ plate, lot_id, ocr_source }) })

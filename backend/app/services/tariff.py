@@ -83,3 +83,13 @@ def quote(start: datetime, end: datetime, tariff_per_hour: float, zone: str | No
 def amount(start: datetime, end: datetime, tariff_per_hour: float, zone: str | None,
            opening_hours: dict | None) -> float:
     return quote(start, end, tariff_per_hour, zone, opening_hours).total
+
+
+def is_open_at(opening_hours: dict | None, at: datetime) -> bool:
+    """Чи діє платне паркування в момент `at` (aware, Europe/Kyiv). None = завжди."""
+    if opening_hours is None:
+        return True
+    if at.isoweekday() not in opening_hours["days"]:
+        return False
+    day = at.date()
+    return _at(day, opening_hours["from"], at.tzinfo) <= at < _at(day, opening_hours["to"], at.tzinfo)

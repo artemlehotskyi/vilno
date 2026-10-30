@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import require_demo_token
 from app.db import get_db
-from app.models import ParkingSession
+from app.models import ParkingSession, Scan
 from app.services import clock
 
 router = APIRouter(prefix="/api")
@@ -48,8 +48,9 @@ def set_demo_clock(body: ClockIn, db: Session = Depends(get_db)):
 
 @router.post("/demo/reset", response_model=ClockOut, dependencies=[Depends(require_demo_token)])
 def reset_demo(db: Session = Depends(get_db)):
-    """Скидає годинник на DEMO_CLOCK_START і видаляє всі демо-сесії (і скани, коли з'являться)."""
+    """Скидає годинник на DEMO_CLOCK_START і видаляє всі демо-сесії та скани."""
     db.execute(delete(ParkingSession))
+    db.execute(delete(Scan))
     db.commit()
     clock.reset(db)
     return _out(db)
