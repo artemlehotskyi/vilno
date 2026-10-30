@@ -90,3 +90,35 @@ export interface ScanOut {
 
 export const postScan = (plate: string | null, lot_id: number, ocr_source: 'manual' | 'cv' = 'manual') =>
   api<ScanOut>('/scans', { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ plate, lot_id, ocr_source }) })
+
+export interface DispatchRow {
+  lot_id: number
+  address: string
+  operator_name: string | null
+  zone: Zone
+  tariff_per_hour: number
+  places: number
+  cars: number // СИМУЛЯЦІЯ
+  unpaid_share: number // СИМУЛЯЦІЯ
+  fine_uah: number
+  expected_benefit_uah: number // СИМУЛЯЦІЯ
+  decision: 'go' | 'route'
+}
+
+export interface Dispatch {
+  is_simulated: boolean
+  assumptions: {
+    trip_cost_uah: number
+    fine_payment_prob: number
+    fine_multiplier: number
+    mean_occupancy: number
+    mean_unpaid_share: Record<Zone, number>
+    sim_seed: number
+  }
+  go_count: number
+  route_count: number
+  go_benefit_uah: number
+  rows: DispatchRow[]
+}
+
+export const getDispatch = () => api<Dispatch>('/stats/dispatch')
