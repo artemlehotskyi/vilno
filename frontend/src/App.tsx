@@ -30,7 +30,7 @@ export default function App() {
           </NavLink>
         ))}
       </nav>
-      <main style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <main style={{ flex: 1, minHeight: 0, overflow: "auto", position: "relative" }}>
         <Routes>
           <Route path="/" element={<Navigate to="/driver" replace />} />
           <Route path="/driver" element={<Driver />} />
