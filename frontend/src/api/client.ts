@@ -50,6 +50,7 @@ export interface SessionOut {
   is_final: boolean
   breakdown: DayPart[]
   payment_ref: string | null
+  capture_method: 'live' | 'fallback' | null // fallback = «фото не перевірено»
 }
 
 export interface Clock {
@@ -59,8 +60,8 @@ export interface Clock {
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' }
 
-export const startSession = (plate: string, lot_id: number) =>
-  api<SessionOut>('/sessions', { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ plate, lot_id }) })
+export const startSession = (plate: string, lot_id: number, car_token: string | null) =>
+  api<SessionOut>('/sessions', { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ plate, lot_id, car_token }) })
 export const getSession = (id: string) => api<SessionOut>(`/sessions/${id}`)
 export const finishSession = (id: string) => api<SessionOut>(`/sessions/${id}/finish`, { method: 'POST' })
 export const paySession = (id: string) => api<SessionOut>(`/sessions/${id}/pay`, { method: 'POST' })
@@ -128,6 +129,8 @@ export interface Recognition {
   car_present: boolean | null // null → детектор недоступний
   plate: string | null // впевнений валідний номер, інакше null
   plate_confidence: number | null
+  car_token: string | null // лише коли CV знайшов авто; потрібен для старту сесії
+  cv_available: boolean
 }
 
 export const recognizePhoto = (image: Blob) => {

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.models import Lot, ParkingSession
-from app.services import clock, tariff
+from app.services import clock, cv, photo_token, tariff
 from app.services.plate import normalize, plate_hmac
 
 router = APIRouter(prefix="/api/sessions")
@@ -18,6 +18,7 @@ router = APIRouter(prefix="/api/sessions")
 class StartIn(BaseModel):
     plate: str
     lot_id: int
+    car_token: str | None = None  # з /recognize, коли CV знайшов авто на фото
 
 
 class DayOut(BaseModel):
@@ -41,6 +42,7 @@ class SessionOut(BaseModel):
     is_final: bool
     breakdown: list[DayOut]
     payment_ref: str | None
+    capture_method: str | None  # live / fallback («фото не перевірено»)
 
 
 def _out(db: Session, s: ParkingSession) -> SessionOut:
@@ -54,8 +56,17 @@ def _out(db: Session, s: ParkingSession) -> SessionOut:
         id=s.id, lot_id=s.lot_id, status=s.status, started_at=started, ended_at=ended, now=now,
         minutes=q.minutes, amount_uah=s.amount_uah if s.amount_uah is not None else q.total,
         is_final=s.status != "active", breakdown=[DayOut(**p.__dict__) for p in q.days],
-        payment_ref=s.payment_ref,
+        payment_ref=s.payment_ref, capture_method=s.capture_method,
     )
+
+
+def _capture_method(car_token: str | None) -> str:
+    """Старт лише після фото, на якому CV знайшов авто. Якщо CV недоступний — fallback з позначкою."""
+    if car_token and photo_token.verify(car_token):
+        return "live"
+    if not cv.available():
+        return "fallback"
+    raise HTTPException(422, "Спершу сфотографуйте авто: на фото має бути видно машину")
 
 
 def _get(db: Session, session_id: str) -> ParkingSession:
@@ -75,11 +86,13 @@ def start_session(body: StartIn, db: Session = Depends(get_db)):
         raise HTTPException(404, "майданчик не знайдено")
     if not lot.is_paid:
         raise HTTPException(409, "майданчик безкоштовний: сесія не потрібна")
+    capture = _capture_method(body.car_token)
     h = plate_hmac(plate)
     if db.scalar(select(ParkingSession).where(ParkingSession.plate_hmac == h, ParkingSession.status == "active")):
         raise HTTPException(409, "для цього номера вже є активна сесія")
     s = ParkingSession(id=str(uuid.uuid4()), plate_hmac=h, lot_id=lot.id,
-                       started_at=clock.to_db(clock.now(db)), status="active")
+                       started_at=clock.to_db(clock.now(db)), status="active",
+                       capture_method=capture)
     db.add(s)
     db.commit()
     return _out(db, s)

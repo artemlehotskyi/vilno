@@ -6,6 +6,7 @@ import MapLegend from '../components/MapLegend'
 import PhotoButton from '../components/PhotoButton'
 import PlateInput from '../components/PlateInput'
 import SessionView from '../components/SessionView'
+import { canStart, type PhotoNote } from '../lib/photo'
 import { isValidPlate } from '../lib/plate'
 import { card, errorBox, page, primaryBtn, secondaryBtn } from '../lib/ui'
 
@@ -16,6 +17,7 @@ export default function Driver() {
   const [selected, setSelected] = useState<Lot | null>(null)
   const [entering, setEntering] = useState(false) // екран вводу номера
   const [plate, setPlate] = useState('')
+  const [photo, setPhoto] = useState<PhotoNote | null>(null) // старт лише після фото з авто або fallback
   const [session, setSession] = useState<SessionOut | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -36,6 +38,7 @@ export default function Driver() {
     setEntering(false)
     setSelected(null)
     setPlate('')
+    setPhoto(null)
     setError(null)
     getLots().then(setLots).catch(() => {}) // оновити «вільно ≈»
   }, [])
@@ -45,7 +48,7 @@ export default function Driver() {
     setBusy(true)
     setError(null)
     try {
-      const s = await startSession(plate, selected.id)
+      const s = await startSession(plate, selected.id, photo?.carToken ?? null)
       localStorage.setItem(SESSION_KEY, s.id)
       setSession(s)
     } catch (e) {
@@ -69,18 +72,40 @@ export default function Driver() {
   if (entering && selected) {
     return (
       <div style={page}>
-        <button style={{ ...secondaryBtn, width: 'auto', padding: '0 16px', marginBottom: 12 }} onClick={() => setEntering(false)}>
+        <button style={{ ...secondaryBtn, width: 'auto', padding: '0 16px', marginBottom: 12 }} onClick={() => { setEntering(false); setPhoto(null) }}>
           ← До мапи
         </button>
         <div style={{ ...card, marginBottom: 12 }}>
           <LotSummary lot={selected} />
         </div>
-        <PhotoButton requireCar label="📷 Сфотографувати авто" onRecognized={(n) => n.plate && setPlate(n.plate)} />
-        <PlateInput value={plate} onChange={setPlate} onEnter={start} autoFocus />
+        <PhotoButton
+          requireCar
+          label={photo ? '📷 Сфотографувати ще раз' : '📷 Сфотографувати авто'}
+          onRecognized={(n) => {
+            setPhoto(n)
+            if (n.plate) setPlate(n.plate)
+          }}
+        />
+        <PlateInput value={plate} onChange={setPlate} onEnter={() => canStart(photo?.gate ?? null) && start()} autoFocus />
         {error && <div style={errorBox}>{error}</div>}
-        <button style={{ ...primaryBtn, marginTop: 8, opacity: isValidPlate(plate) ? 1 : 0.5 }} disabled={!isValidPlate(plate) || busy} onClick={start}>
-          Почати паркування
-        </button>
+        {(() => {
+          const ready = isValidPlate(plate) && canStart(photo?.gate ?? null)
+          return (
+            <>
+              <button style={{ ...primaryBtn, marginTop: 8, opacity: ready ? 1 : 0.5 }} disabled={!ready || busy} onClick={start}>
+                Почати паркування
+              </button>
+              {!canStart(photo?.gate ?? null) && (
+                <div style={{ fontSize: 13, color: '#666', marginTop: 6, textAlign: 'center' }}>
+                  {photo?.gate === 'nocar' ? 'Старт заблоковано: на фото немає авто.' : 'Спершу сфотографуйте авто.'}
+                </div>
+              )}
+              {photo?.gate === 'fallback' && (
+                <div style={{ fontSize: 13, color: '#8a5a00', marginTop: 6, textAlign: 'center' }}>Фото не перевірено: сесію буде позначено.</div>
+              )}
+            </>
+          )
+        })()}
       </div>
     )
   }

@@ -1,14 +1,14 @@
 import { useRef, useState } from 'react'
 import { recognizePhoto, type Recognition } from '../api/client'
 import { shrinkImage } from '../lib/image'
-import { photoNote, type PhotoNote } from '../lib/photo'
+import { failedNote, photoNote, type PhotoNote } from '../lib/photo'
 import { errorBox, secondaryBtn } from '../lib/ui'
 
 const COLORS = { ok: '#e3f4e8', warn: '#fdebd0', info: '#eef0f3' }
 
 interface Props {
   requireCar: boolean
-  onRecognized: (note: PhotoNote, r: Recognition) => void
+  onRecognized: (note: PhotoNote, r: Recognition | null) => void // r=null: запит упав
   label?: string
 }
 
@@ -36,7 +36,12 @@ export default function PhotoButton({ requireCar, onRecognized, label = '📷 С
       setNote(n)
       onRecognized(n, r)
     } catch (e) {
-      setError((e as Error).message)
+      // 422 «не вдалося прочитати зображення» — це не падіння CV, просимо інше фото
+      if ((e as Error).message.includes('прочитати')) setError((e as Error).message)
+      else {
+        setNote(failedNote)
+        onRecognized(failedNote, null)
+      }
     } finally {
       setBusy(false)
     }

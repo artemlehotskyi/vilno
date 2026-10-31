@@ -22,10 +22,20 @@ YOLO_WEIGHTS = ROOT / "models" / "yolov8n.pt"  # *.pt у .gitignore; ultralytics
 _lock = threading.Lock()  # моделі не потокобезпечні: один виклик за раз
 _yolo = None
 _alpr = None
+_broken = False  # модель упала під час роботи: до перезапуску вважаємо CV недоступним
 
 
 class BadImage(ValueError):
     pass
+
+
+class CVFailed(RuntimeError):
+    pass
+
+
+def available() -> bool:
+    """Чи можна вимагати від водія фото з авто. Ні → старт дозволено з capture_method='fallback'."""
+    return settings.CV_ENABLED and _yolo is not None and not _broken
 
 
 @dataclass
@@ -100,8 +110,14 @@ def read_plate(img: np.ndarray) -> tuple[str | None, float | None]:
 def recognize(data: bytes) -> Recognition:
     if not settings.CV_ENABLED:
         return Recognition(enabled=False)
+    global _broken
     img = decode(data)
     with _lock:
-        car = detect_car(img)
-        plate, conf = read_plate(img)
+        try:
+            car = detect_car(img)
+            plate, conf = read_plate(img)
+        except Exception as e:
+            _broken = True
+            log.exception("CV упав під час розпізнавання")
+            raise CVFailed(str(e)) from e
     return Recognition(enabled=True, car_present=car, plate=plate, plate_confidence=conf)

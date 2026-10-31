@@ -86,7 +86,10 @@ def post(client, data=b"x", name="a.jpg"):
 
 def test_endpoint_maps_result(client, monkeypatch):
     monkeypatch.setattr(cv, "recognize", lambda _d: cv.Recognition(True, True, "AA1234BB", 0.97))
-    assert post(client).json() == {"enabled": True, "car_present": True, "plate": "AA1234BB", "plate_confidence": 0.97}
+    r = post(client).json()
+    assert {k: r[k] for k in ("enabled", "car_present", "plate", "plate_confidence")} == \
+        {"enabled": True, "car_present": True, "plate": "AA1234BB", "plate_confidence": 0.97}
+    assert r["car_token"]  # авто знайдено → токен для старту сесії
 
 
 def test_endpoint_disabled(client, monkeypatch):

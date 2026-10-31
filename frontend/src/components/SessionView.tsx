@@ -70,6 +70,9 @@ export default function SessionView({ session, lot, onUpdate, onNew }: Props) {
       <div style={{ ...card, marginBottom: 12 }}>
         <LotSummary lot={lot} />
         <div style={{ fontSize: 13, color: '#666', marginTop: 6 }}>Початок: {formatKyivTime(session.started_at)} (демо-годинник)</div>
+        {session.capture_method === 'fallback' && (
+          <div style={{ fontSize: 13, color: '#8a5a00', marginTop: 4 }}>📷 Фото не перевірено (розпізнавання було недоступне)</div>
+        )}
       </div>
 
       <div style={{ ...card, textAlign: 'center' }}>

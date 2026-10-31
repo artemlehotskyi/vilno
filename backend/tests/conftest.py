@@ -44,3 +44,13 @@ def test_secrets(monkeypatch):
     monkeypatch.setattr(settings, "PLATE_HMAC_KEY", "test-hmac-key")
     monkeypatch.setattr(settings, "DEMO_TOKEN", "test-token")
     monkeypatch.setattr(settings, "DEMO_CLOCK_START", "2026-10-30T14:00:00+02:00")
+
+
+@pytest.fixture(autouse=True)
+def cv_unavailable_by_default(monkeypatch):
+    """У тестах моделі не завантажені: CV недоступний, старт сесії йде як fallback.
+    Тести «воріт» фото вмикають доступність явно."""
+    from app.services import cv
+    monkeypatch.setattr(cv, "_yolo", None)
+    monkeypatch.setattr(cv, "_alpr", None)
+    monkeypatch.setattr(cv, "_broken", False)

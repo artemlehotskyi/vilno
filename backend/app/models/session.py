@@ -19,3 +19,4 @@ class ParkingSession(Base):
     amount_uah: Mapped[float | None] = mapped_column(Float, nullable=True)
     status: Mapped[str] = mapped_column(String)  # active / finished / paid
     payment_ref: Mapped[str | None] = mapped_column(String, nullable=True)
+    capture_method: Mapped[str | None] = mapped_column(String, nullable=True)  # live (CV знайшов авто) / fallback (CV недоступний)
