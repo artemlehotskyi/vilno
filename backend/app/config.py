@@ -28,6 +28,9 @@ class Settings:
     FINE_PAYMENT_PROB: float = float(os.getenv("FINE_PAYMENT_PROB", "0.63"))
     REPORT_COOLDOWN_MIN: int = int(os.getenv("REPORT_COOLDOWN_MIN", "30"))  # одна скарга з клієнта на лот
 
+    # Зібраний фронт (npm run build). FastAPI віддає його сам: одна адреса, без CORS.
+    FRONTEND_DIST: str = os.getenv("FRONTEND_DIST", str(ROOT / "frontend" / "dist"))
+
     DEMO_CLOCK_START: str = os.getenv("DEMO_CLOCK_START", "2026-10-30T14:00:00+02:00")
     SIM_SEED: int = int(os.getenv("SIM_SEED", "31102026"))
 

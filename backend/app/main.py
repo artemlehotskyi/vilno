@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.api import demo, lots, recognize, reports, scans, sessions, stats
+from app.api import demo, lots, recognize, reports, scans, sessions, spa, stats
 from app.config import require_secrets, settings
 from app.db import SessionLocal, init_db
 from app.services import cv
@@ -60,3 +60,7 @@ app.include_router(demo.router)
 @app.get("/api/health")
 def health():
     return {"ok": True}
+
+
+# Останнім: статика фронту + SPA-fallback (не перехоплює /api/*)
+app.include_router(spa.router)
