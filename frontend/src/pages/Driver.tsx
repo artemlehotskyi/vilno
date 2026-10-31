@@ -87,7 +87,7 @@ export default function Driver() {
         </div>
         <PhotoButton
           requireCar
-          label={photo ? '📷 Сфотографувати ще раз' : '📷 Сфотографувати авто'}
+          label={photo ? 'Сфотографувати ще раз' : 'Сфотографувати авто'}
           onRecognized={(n) => {
             setPhoto(n)
             if (n.plate) setPlate(n.plate)

@@ -74,3 +74,68 @@ input { caret-color: var(--ink); }
   .lot-marker .shape { transition: none; }
   .map-loading::after { animation: none; width: 100%; opacity: 0.4; }
 }
+
+/* Кнопки: один набір станів на весь застосунок (hover лише для курсора, натискання — масштаб, завантаження — спінер) */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; padding: 0 16px;
+  border-radius: var(--radius); border: 1px solid transparent; font-size: 15px; font-weight: 500; line-height: 1.2;
+  transition: transform 120ms var(--ease), background-color 150ms var(--ease), border-color 150ms var(--ease), color 150ms var(--ease), opacity 150ms var(--ease);
+}
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn:disabled { cursor: not-allowed; }
+.btn-primary { background: var(--ink); color: #fff; font-weight: 600; min-height: 52px; font-size: 16px; }
+.btn-primary:disabled { background: var(--bg); color: var(--ink-2); border-color: var(--line); opacity: 0.7; }
+.btn-secondary { background: var(--bg); color: var(--ink); border-color: color-mix(in srgb, var(--ink) 28%, white); }
+.btn-secondary:disabled { color: var(--ink-2); border-color: var(--line); opacity: 0.7; }
+.btn-problem { background: var(--bg); color: var(--busy); border-color: var(--busy); }
+.btn-problem:disabled { opacity: 0.55; }
+.btn-text { background: none; color: var(--ink-2); min-height: 44px; }
+@media (hover: hover) {
+  .btn-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--ink) 88%, white); }
+  .btn-secondary:hover:not(:disabled) { background: color-mix(in srgb, var(--ink) 4%, white); }
+  .btn-problem:hover:not(:disabled) { background: var(--busy-tint); }
+  .btn-text:hover:not(:disabled) { color: var(--ink); }
+}
+.btn[aria-busy='true'] { cursor: progress; }
+.spin { animation: spin 800ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .btn { transition: none; }
+  .btn:active:not(:disabled) { transform: none; }
+  .spin { animation: none; }
+}
+
+/* Токени, додані при нормалізації інспектора */
+:root {
+  --warn-tint: color-mix(in srgb, var(--warn) 12%, white);
+  --field-line: color-mix(in srgb, var(--ink) 50%, white); /* межа поля ≥ 3:1 */
+}
+
+/* Поле номера: плейсхолдер світліший і тонший за введений текст */
+.plate-input {
+  width: 100%; height: 64px; padding: 0 48px 0 16px; border-radius: var(--radius); background: var(--bg);
+  border: 1.5px solid var(--field-line); color: var(--ink); text-align: center;
+  font-size: 28px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+  transition: border-color 150ms var(--ease);
+}
+.plate-input::placeholder { color: color-mix(in srgb, var(--ink) 30%, white); font-weight: 400; }
+.plate-input.valid { border-color: var(--free); }
+.plate-input.invalid { border-color: var(--busy); }
+.plate-input:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Вибір майданчика: нижній аркуш замість нативного select */
+.sheet-backdrop { position: fixed; inset: 0; z-index: 3000; background: color-mix(in srgb, var(--ink) 40%, transparent); animation: fade-in 160ms var(--ease) both; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 3001; max-height: 80%; display: flex; flex-direction: column;
+  background: var(--bg); border-radius: 16px 16px 0 0; animation: panel-in 220ms var(--ease) both;
+}
+
+/* Результат скану: поява статусу */
+.verdict { animation: verdict-in 220ms var(--ease) both; }
+.verdict .verdict-icon { animation: icon-in 260ms var(--ease) 60ms both; }
+@keyframes verdict-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes icon-in { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .sheet-backdrop, .sheet { animation: fade-in 120ms linear both; }
+  .verdict, .verdict .verdict-icon { animation: fade-in 120ms linear both; }
+}

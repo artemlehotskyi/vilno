@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
+import { CircleNotchIcon } from '@phosphor-icons/react'
 import { getLots, postScan, type Lot, type ScanOut } from '../api/client'
+import LotPicker from '../components/LotPicker'
+import Note from '../components/Note'
 import PhotoButton from '../components/PhotoButton'
 import PlateInput from '../components/PlateInput'
 import ScanResultCard from '../components/ScanResultCard'
-import { ZONE_LABEL } from '../lib/format'
 import { isValidPlate } from '../lib/plate'
-import { card, errorBox, page, primaryBtn, secondaryBtn } from '../lib/ui'
+import { page } from '../lib/ui'
 
 const LOT_KEY = 'vilno.inspectorLot'
-const ZONES = ['center', 'standard', 'market'] as const
 
 export default function Inspector() {
   const [lots, setLots] = useState<Lot[]>([])
@@ -16,6 +17,7 @@ export default function Inspector() {
   const [plate, setPlate] = useState('')
   const [fromCv, setFromCv] = useState(false) // номер підставлено з CV (і не змінено людиною)
   const [result, setResult] = useState<ScanOut | null>(null)
+  const [scanned, setScanned] = useState<string | null>(null) // номер, для якого показано результат
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -38,6 +40,7 @@ export default function Inspector() {
     setError(null)
     try {
       setResult(await postScan(plateOrNull, lot.id, plateOrNull && fromCv ? 'cv' : 'manual'))
+      setScanned(plateOrNull)
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -52,41 +55,38 @@ export default function Inspector() {
     setError(null)
   }
 
+  const valid = isValidPlate(plate)
+
   return (
     <div style={page}>
-      <label style={{ fontSize: 13, color: '#666' }}>Майданчик, де ви зараз</label>
-      <select
-        value={lot?.id ?? ''}
-        onChange={(e) => choose(Number(e.target.value))}
-        style={{ width: '100%', minHeight: 48, borderRadius: 10, border: '1px solid #bbb', padding: '0 8px', marginBottom: 12, fontSize: 16 }}
-      >
-        {ZONES.map((z) => (
-          <optgroup key={z} label={`${ZONE_LABEL[z]} (зона — припущення)`}>
-            {paid.filter((l) => l.zone === z).map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.address} · {l.tariff_per_hour} грн
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
+      <LotPicker lots={paid} value={lot} onChange={choose} />
 
       {result && lot ? (
-        <>
-          <ScanResultCard result={result} lot={lot} />
-          <button style={{ ...primaryBtn, marginTop: 12 }} onClick={reset}>
-            Новий скан
-          </button>
-          <button style={{ ...secondaryBtn, marginTop: 8 }} disabled={busy} onClick={() => check(plate || null)}>
-            Повторити скан цього номера
-          </button>
-        </>
+        <section style={{ marginTop: 20 }}>
+          <ScanResultCard result={result} lot={lot} plate={scanned} />
+          <div style={{ display: 'grid', gap: 8, marginTop: 20 }}>
+            {result.status === 'unknown' && result.paid_now ? (
+              <button className="btn btn-primary" onClick={() => setResult(null)}>Ввести номер</button>
+            ) : (
+              <>
+                <button className="btn btn-primary" onClick={reset}>Новий скан</button>
+                {scanned && (
+                  <button className="btn btn-secondary" disabled={busy} aria-busy={busy} onClick={() => check(scanned)}>
+                    {busy && <CircleNotchIcon size={20} weight="regular" className="spin" aria-hidden />}
+                    Повторити скан
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </section>
       ) : (
-        <div style={card}>
-          <div style={{ marginBottom: 8, fontWeight: 600 }}>Номер авто (підтвердіть самі)</div>
+        <section style={{ marginTop: 20 }}>
+          <h2 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 600 }}>Номер авто</h2>
           <PhotoButton
+            primary={!valid}
             requireCar={false}
-            label="📷 Сфотографувати номер"
+            label="Сфотографувати номер"
             onRecognized={(n) => {
               if (n.plate) {
                 setPlate(n.plate)
@@ -94,26 +94,39 @@ export default function Inspector() {
               }
             }}
           />
-          <PlateInput
-            value={plate}
-            onChange={(v) => {
-              setPlate(v)
-              setFromCv(false)
-            }}
-            onEnter={() => check(plate)}
-          />
-          {error && <div style={errorBox}>{error}</div>}
-          <button
-            style={{ ...primaryBtn, opacity: isValidPlate(plate) ? 1 : 0.5 }}
-            disabled={!isValidPlate(plate) || busy || !lot}
-            onClick={() => check(plate)}
-          >
-            Перевірити статус
-          </button>
-          <button style={{ ...secondaryBtn, marginTop: 8 }} disabled={busy || !lot} onClick={() => check(null)}>
-            Номер не видно / нечитабельний
-          </button>
-        </div>
+          <div style={{ margin: '16px 0 0' }}>
+            <PlateInput
+              value={plate}
+              hint="Перевірте, чи номер розпізнано правильно"
+              onChange={(v) => {
+                setPlate(v)
+                setFromCv(false)
+              }}
+              onEnter={() => check(plate)}
+            />
+          </div>
+          {error && <div style={{ marginTop: 8 }}><Note kind="error">{error}</Note></div>}
+
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)' }}>
+            <button
+              className={`btn ${valid ? 'btn-primary' : 'btn-secondary'}`}
+              style={valid ? undefined : { minHeight: 52 }}
+              disabled={!valid || busy || !lot}
+              aria-busy={busy}
+              aria-describedby="check-hint"
+              onClick={() => check(plate)}
+            >
+              {busy && <CircleNotchIcon size={20} weight="regular" className="spin" aria-hidden />}
+              Перевірити статус
+            </button>
+            <div id="check-hint" style={{ minHeight: 20, marginTop: 6, fontSize: 13, color: 'var(--ink-2)', textAlign: 'center' }}>
+              {valid ? '' : plate ? 'Номер ще не повний' : 'Введіть номер'}
+            </div>
+            <button className="btn btn-text" disabled={busy || !lot} onClick={() => check(null)}>
+              Номер не читається
+            </button>
+          </div>
+        </section>
       )}
     </div>
   )

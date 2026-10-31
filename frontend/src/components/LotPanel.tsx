@@ -4,7 +4,6 @@ import type { Lot } from '../api/client'
 import { ZONE_LABEL, formatHours } from '../lib/format'
 import { busyEstimate, lotState } from '../lib/lotState'
 import ReportNoSpace from './ReportNoSpace'
-import { primaryBtn } from '../lib/ui'
 
 const NO_DATA = 'немає даних'
 
@@ -105,7 +104,7 @@ export default function LotPanel({ lot, onPark, onClose }: Props) {
           <div style={{ fontSize: 14, color: 'var(--ink-2)' }}>Сесія не потрібна: тут не стягують плату.</div>
         ) : (
           <>
-            <button style={primaryBtn} onClick={onPark}>Припаркуватись тут</button>
+            <button className="btn btn-primary" onClick={onPark}>Припаркуватись тут</button>
             <ReportNoSpace key={lot.id} lotId={lot.id} />
           </>
         )}
