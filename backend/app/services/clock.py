@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -29,12 +30,20 @@ def from_db(dt: datetime) -> datetime:
 def _state(db: Session, real: datetime | None = None) -> DemoState:
     st = db.get(DemoState, 1)
     if st is None:
-        # перше звернення: годинник стартує з DEMO_CLOCK_START
+        # зазвичай рядок створює init_db; тут — страховка, стійка до одночасних запитів
         start = datetime.fromisoformat(settings.DEMO_CLOCK_START)
-        st = DemoState(id=1, clock_offset_seconds=(start - (real or real_now())).total_seconds())
-        db.add(st)
-        db.commit()
+        db.add(DemoState(id=1, clock_offset_seconds=(start - (real or real_now())).total_seconds()))
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()  # інший запит створив рядок раніше
+        st = db.get(DemoState, 1)
     return st
+
+
+def ensure_state(db: Session) -> None:
+    """Створює рядок demo_state на старті, щоб перші одночасні запити не гналися за ним."""
+    _state(db)
 
 
 def now(db: Session, real: datetime | None = None) -> datetime:

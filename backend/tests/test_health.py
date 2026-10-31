@@ -4,7 +4,7 @@ from app.main import app
 
 
 def test_health():
-    with TestClient(app) as client:
-        r = client.get("/api/health")
+    # без `with`: lifespan (секрети, БД, моделі) тестується окремо в test_audit_fixes.py
+    r = TestClient(app).get("/api/health")
     assert r.status_code == 200
     assert r.json() == {"ok": True}

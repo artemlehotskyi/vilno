@@ -3,7 +3,7 @@ import uuid
 from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,8 +16,8 @@ router = APIRouter(prefix="/api/sessions")
 
 
 class StartIn(BaseModel):
-    plate: str
-    lot_id: int
+    plate: str = Field(max_length=32)
+    lot_id: int = Field(ge=1, le=2_147_483_647)
     car_token: str | None = None  # з /recognize, коли CV знайшов авто на фото
 
 

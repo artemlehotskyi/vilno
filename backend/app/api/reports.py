@@ -13,8 +13,8 @@ router = APIRouter(prefix="/api")
 
 
 class ReportIn(BaseModel):
-    lot_id: int
-    plate: str | None = None
+    lot_id: int = Field(ge=1, le=2_147_483_647)
+    plate: str | None = Field(default=None, max_length=32)
     client_id: str = Field(min_length=8, max_length=128)  # анонімний id з localStorage
 
 

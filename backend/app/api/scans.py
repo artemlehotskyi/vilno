@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -16,8 +16,8 @@ router = APIRouter(prefix="/api")
 
 
 class ScanIn(BaseModel):
-    plate: str | None = None  # None → інспектор не підтвердив номер → unknown
-    lot_id: int
+    plate: str | None = Field(default=None, max_length=32)  # None → інспектор не підтвердив номер → unknown
+    lot_id: int = Field(ge=1, le=2_147_483_647)
     ocr_source: Literal["manual", "cv"] = "manual"
 
 

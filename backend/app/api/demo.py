@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
@@ -18,9 +18,21 @@ class ClockOut(BaseModel):
     is_demo_shifted: bool
 
 
+MAX_ADVANCE_MIN = 7 * 24 * 60  # тиждень в обидва боки достатньо для будь-якого демо
+
+
 class ClockIn(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     set: datetime | None = None
-    advance_minutes: float | None = None
+    advance_minutes: float | None = Field(default=None, ge=-MAX_ADVANCE_MIN, le=MAX_ADVANCE_MIN)
+
+    @field_validator("set")
+    @classmethod
+    def _sane_year(cls, v: datetime | None) -> datetime | None:
+        if v is not None and not 2020 <= v.year <= 2035:
+            raise ValueError("рік демо-годинника має бути між 2020 і 2035")
+        return v
 
 
 def _out(db: Session) -> ClockOut:

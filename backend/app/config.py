@@ -33,3 +33,11 @@ class Settings:
 
 
 settings = Settings()
+
+
+def require_secrets() -> None:
+    """Fail-fast на старті сервера: без ключів API працювало б небезпечно
+    (порожній PLATE_HMAC_KEY → підроблювані car_token і 500 на сесіях)."""
+    missing = [k for k in ("PLATE_HMAC_KEY", "DEMO_TOKEN") if not getattr(settings, k)]
+    if missing:
+        raise RuntimeError(f"не задано в .env: {', '.join(missing)}")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -54,7 +54,7 @@ def list_lots(db: Session = Depends(get_db)):
 
 
 @router.get("/lots/{lot_id}", response_model=LotOut)
-def get_lot(lot_id: int, db: Session = Depends(get_db)):
+def get_lot(lot_id: int = Path(ge=1, le=2_147_483_647), db: Session = Depends(get_db)):
     lot = db.get(Lot, lot_id)
     if lot is None:
         raise HTTPException(404, "майданчик не знайдено")

@@ -4,14 +4,18 @@
 Невпевнено, не пройшло регулярку або кілька різних кандидатів → plate=None (ручний ввід).
 Хибний номер гірший за unknown. Фото обробляємо в пам'яті, не зберігаємо, номер не логуємо."""
 import logging
+import os
 import threading
 from dataclasses import dataclass
 
-import cv2
-import numpy as np
+# Ліміт пікселів до імпорту cv2: захист від «декомпресійної бомби» (крихітний PNG на гігапіксель)
+os.environ.setdefault("OPENCV_IO_MAX_IMAGE_PIXELS", str(100_000_000))
 
-from app.config import ROOT, settings
-from app.services.plate import normalize
+import cv2  # noqa: E402
+import numpy as np  # noqa: E402
+
+from app.config import ROOT, settings  # noqa: E402
+from app.services.plate import normalize  # noqa: E402
 
 log = logging.getLogger("vilno.cv")
 
@@ -65,7 +69,12 @@ def load_models() -> None:
 
 
 def decode(data: bytes) -> np.ndarray:
-    img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
+    if not data:
+        raise BadImage("порожній файл")
+    try:
+        img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
+    except cv2.error:
+        img = None
     if img is None:
         raise BadImage("не вдалося прочитати зображення")
     h, w = img.shape[:2]

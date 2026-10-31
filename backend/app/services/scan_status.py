@@ -46,7 +46,8 @@ def evaluate(db: Session, plate_hmac: str | None, lot: Lot, now: datetime,
     # 4. Сесію на цьому лоті закрито t хв тому
     closed = [clock.from_db(s.ended_at) for s in here if s.ended_at is not None]
     if closed:
-        t = int((now - max(closed)).total_seconds() // 60)
+        # як у тарифікації: секунди відкидаємо (інакше «+15 хв» показувало б 14)
+        t = int((clock.floor_minute(now) - clock.floor_minute(max(closed))).total_seconds() // 60)
         if t <= grace:
             return ScanResult("active", True, minutes_since_close=t, grace_after_close=True)
         if t <= window:
