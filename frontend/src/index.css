@@ -140,3 +140,15 @@ input { caret-color: var(--ink); }
   .sheet-backdrop, .sheet { animation: fade-in 120ms linear both; }
   .verdict, .verdict .verdict-icon { animation: fade-in 120ms linear both; }
 }
+
+/* Крок 3: процеси водія */
+.screen-in { animation: verdict-in 220ms var(--ease) both; }
+.pop-in { animation: icon-in 220ms var(--ease) both; }
+.status-in { animation: fade-in 180ms var(--ease) both; }
+.step-row { display: flex; align-items: center; gap: 10px; min-height: 28px; font-size: 14px; font-weight: 500; transition: color 150ms var(--ease), opacity 150ms var(--ease); }
+.steps-out { animation: fade-out 200ms var(--ease) both; }
+@keyframes fade-out { to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .screen-in, .pop-in, .status-in { animation: fade-in 120ms linear both; }
+  .steps-out { animation: none; }
+}

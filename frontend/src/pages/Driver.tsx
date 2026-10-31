@@ -7,9 +7,12 @@ import MapCaption from '../components/MapCaption'
 import PhotoButton from '../components/PhotoButton'
 import PlateInput from '../components/PlateInput'
 import SessionView from '../components/SessionView'
+import { ArrowLeftIcon, CircleNotchIcon } from '@phosphor-icons/react'
+import Note from '../components/Note'
 import { canStart, type PhotoNote } from '../lib/photo'
 import { isValidPlate } from '../lib/plate'
-import { card, errorBox, page, primaryBtn, secondaryBtn } from '../lib/ui'
+import { errorBox, page } from '../lib/ui'
+import { withMinDuration } from '../lib/minDelay'
 
 const SESSION_KEY = 'vilno.sessionId'
 
@@ -55,7 +58,7 @@ export default function Driver() {
     setBusy(true)
     setError(null)
     try {
-      const s = await startSession(plate, selected.id, photo?.carToken ?? null)
+      const s = await withMinDuration(startSession(plate, selected.id, photo?.carToken ?? null), 700)
       localStorage.setItem(SESSION_KEY, s.id)
       setSession(s)
     } catch (e) {
@@ -77,15 +80,19 @@ export default function Driver() {
 
   // --- екран вводу номера ---
   if (entering && selected) {
+    const gateOk = canStart(photo?.gate ?? null)
+    const ready = isValidPlate(plate) && gateOk
     return (
-      <div style={page}>
-        <button style={{ ...secondaryBtn, width: 'auto', padding: '0 16px', marginBottom: 12 }} onClick={() => { setEntering(false); setPhoto(null) }}>
-          ← До мапи
+      <div style={page} className="screen-in">
+        <button className="btn btn-text" style={{ width: 'auto', justifyContent: 'flex-start', padding: 0, minHeight: 44 }} onClick={() => { setEntering(false); setPhoto(null) }}>
+          <ArrowLeftIcon size={20} weight="regular" aria-hidden />
+          До мапи
         </button>
-        <div style={{ ...card, marginBottom: 12 }}>
+        <div style={{ paddingBottom: 16, borderBottom: '1px solid var(--line)', marginBottom: 20 }}>
           <LotSummary lot={selected} />
         </div>
         <PhotoButton
+          primary={!ready}
           requireCar
           label={photo ? 'Сфотографувати ще раз' : 'Сфотографувати авто'}
           onRecognized={(n) => {
@@ -93,26 +100,20 @@ export default function Driver() {
             if (n.plate) setPlate(n.plate)
           }}
         />
-        <PlateInput value={plate} onChange={setPlate} onEnter={() => canStart(photo?.gate ?? null) && start()} autoFocus />
-        {error && <div style={errorBox}>{error}</div>}
-        {(() => {
-          const ready = isValidPlate(plate) && canStart(photo?.gate ?? null)
-          return (
-            <>
-              <button style={{ ...primaryBtn, marginTop: 8, opacity: ready ? 1 : 0.5 }} disabled={!ready || busy} onClick={start}>
-                Почати паркування
-              </button>
-              {!canStart(photo?.gate ?? null) && (
-                <div style={{ fontSize: 13, color: '#666', marginTop: 6, textAlign: 'center' }}>
-                  {photo?.gate === 'nocar' ? 'Старт заблоковано: на фото немає авто.' : 'Спершу сфотографуйте авто.'}
-                </div>
-              )}
-              {photo?.gate === 'fallback' && (
-                <div style={{ fontSize: 13, color: '#8a5a00', marginTop: 6, textAlign: 'center' }}>Фото не перевірено: сесію буде позначено.</div>
-              )}
-            </>
-          )
-        })()}
+        <div style={{ marginTop: 16 }}>
+          <PlateInput value={plate} onChange={setPlate} onEnter={() => gateOk && start()} hint="Перевірте, чи номер розпізнано правильно" />
+        </div>
+        {error && <div style={{ marginBottom: 8 }}><Note kind="error">{error}</Note></div>}
+        <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--line)' }}>
+          <button className={`btn ${ready ? 'btn-primary' : 'btn-secondary'}`} disabled={!ready || busy} aria-busy={busy} aria-describedby="start-hint" onClick={start}>
+            {busy && <CircleNotchIcon size={20} weight="regular" className="spin" aria-hidden />}
+            {busy ? 'Починаємо…' : 'Почати паркування'}
+          </button>
+          <div id="start-hint" style={{ minHeight: 20, marginTop: 6, fontSize: 13, color: 'var(--ink-2)', textAlign: 'center' }}>
+            {ready ? '' : photo?.gate === 'nocar' ? 'Старт заблоковано: на фото немає авто' : !gateOk ? 'Спершу сфотографуйте авто' : 'Введіть номер'}
+          </div>
+          {photo?.gate === 'fallback' && <div style={{ marginTop: 8 }}><Note kind="warn">Фото не перевірено: сесію буде позначено.</Note></div>}
+        </div>
       </div>
     )
   }
