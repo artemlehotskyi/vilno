@@ -152,3 +152,8 @@ input { caret-color: var(--ink); }
   .screen-in, .pop-in, .status-in { animation: fade-in 120ms linear both; }
   .steps-out { animation: none; }
 }
+
+/* Завантаження ≠ неактивність: головна кнопка під час процесу лишається суцільною */
+.btn-primary[aria-busy='true']:disabled { background: var(--ink); color: #fff; border-color: transparent; opacity: 1; }
+.btn-secondary[aria-busy='true']:disabled { opacity: 1; color: var(--ink); border-color: var(--field-line); }
+.leaflet-touch .leaflet-control-zoom a { width: 44px; height: 44px; line-height: 44px; font-size: 20px; }

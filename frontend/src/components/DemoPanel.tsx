@@ -40,26 +40,26 @@ export default function DemoPanel() {
   return (
     <div style={{ position: 'fixed', right: 8, bottom: 8, zIndex: 2000, maxWidth: 'calc(100vw - 16px)', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
       {open && (
-        <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 12, padding: 12, marginBottom: 6, width: 300, boxShadow: '0 4px 16px rgba(11,31,68,.12)' }}>
-          <div style={{ fontWeight: 600, marginBottom: 6 }}>Демо-годинник</div>
+        <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 12, padding: 12, marginBottom: 6, width: 300, boxShadow: '0 4px 16px rgba(11,31,68,.12)' }}>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>Демо-годинник</div>
           <input
             type="password" value={token} onChange={(e) => saveToken(e.target.value)} placeholder="X-Demo-Token"
-            style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid #bbb', marginBottom: 8 }}
+            style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid var(--field-line)', marginBottom: 8 }}
           />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {STEPS.map(([label, min]) => (
-              <button key={min} onClick={() => run(() => demoAdvance(token, min))} style={{ padding: '0 12px', borderRadius: 8 }}>
+              <button key={min} className="btn btn-secondary" onClick={() => run(() => demoAdvance(token, min))} style={{ width: 'auto', minHeight: 44, padding: '0 12px', fontSize: 14 }}>
                 {label}
               </button>
             ))}
           </div>
           <button
             onClick={() => confirm('Скинути годинник і видалити всі демо-сесії?') && run(() => demoReset(token))}
-            style={{ marginTop: 8, width: '100%', borderRadius: 8, color: '#c0392b' }}
+            className="btn btn-problem" style={{ marginTop: 8, minHeight: 44 }}
           >
             Скинути демо
           </button>
-          {msg && <div style={{ color: '#c0392b', fontSize: 13, marginTop: 6 }}>{msg}</div>}
+          {msg && <div style={{ color: 'var(--busy)', fontSize: 13, marginTop: 6 }}>{msg}</div>}
         </div>
       )}
       <button
