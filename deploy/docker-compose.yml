@@ -17,7 +17,9 @@ services:
     volumes:
       - vilno-data:/srv/vilno/var  # SQLite переживає перезапуск і перезбірку
     ports:
-      - "127.0.0.1:8090:8000"      # лише для curl з самого VPS; ззовні — тільки через тунель
+      - "127.0.0.1:8090:8000"      # для curl з самого VPS
+      - "80:8000"                  # запасний доступ за IP (http://<IP>/driver), якщо мережа блокує trycloudflare.com.
+                                   # Без HTTPS: камера працює через <input capture>, але трафік (і X-Demo-Token) іде відкритим текстом
     mem_limit: 2g                  # CV (YOLO + fast-alpr) ≈ 0,6 ГБ на Mac; на Linux з torch — з запасом
     stop_grace_period: 10s
 
