@@ -8,8 +8,8 @@
 - **Бекенд:** Python 3.11+, FastAPI, SQLAlchemy 2, Pydantic, pytest.
 - **БД:** SQLite (`sqlite:///./vilno.db`), `Base.metadata.create_all()`. **Не додавати** Postgres, Alembic, Docker, Supabase.
 - **CV (F8, повністю локальний):** pretrained YOLO (COCO, `car`/`truck`, conf ≥ 0.4) для «є авто» + `fast-alpr` для номера → нормалізація → регулярка. Моделі вантажити один раз на старті процесу. **Жодних зовнішніх API** (ні LLM, ні хмарних OCR). Таймбокс на `fast-alpr` 20 хв; не запрацював → тільки «є авто», номер вручну.
-- **Деплой:** немає. Локально; телефон через тунель на Vite (`:5173`) у кінці, якщо буде час.
-- Фронт ходить тільки у FastAPI (Vite proxy `/api → :8000`).
+- **Деплой:** один Docker-образ (`Dockerfile`, multi-stage) на **виділеному VPS** через `deploy/docker-compose.yml` (проєкт `vilno`: `api` + `tunnel`). HTTPS — cloudflared quick tunnel (`*.trycloudflare.com`), без домену. Див. розділ «VPS».
+- Фронт ходить тільки у FastAPI. Локально — Vite proxy `/api → :8000`; на сервері FastAPI сам віддає `frontend/dist` (SPA-fallback): одна адреса, без CORS і `VITE_API_URL`.
 
 ## Структура
 ```
@@ -59,12 +59,21 @@ scripts/           # import_lots.py, reset_db.py
 
 ## Скоуп
 - Тільки F0–F8 і C5 з `PLAN.md`. **Should не робимо:** маршрут, тривога, експорт, `exempt`.
-- **Won't:** реальна оплата (лише mock), камери, реальні штрафи й реєстри, «борг», авторизація, геолокація, хеші фото, VPS, Postgres.
+- **Won't:** реальна оплата (лише mock), камери, реальні штрафи й реєстри, «борг», авторизація, геолокація, хеші фото, Postgres, Vercel, CORS.
 
 ## «Готово» означає
 1. Працює в браузері (на телефоні, якщо є тунель) і виконано критерій «готово» фічі з `PLAN.md`.
 2. Тести на змінену логіку зелені.
 3. Один коміт із ID фічі.
+
+## VPS (виділений лише під VILNO)
+- Інших сервісів на VPS немає, тож ізоляція від чужих контейнерів не потрібна. Але все одно працюємо **лише через compose-проєкт `vilno`** у `deploy/`.
+- **Агент сам на сервері нічого не запускає.** Дає людині команди, а кожну команду, що змінює стан сервера, позначає окремо.
+- **Ніколи без явного підтвердження людини:** `docker compose down -v`, `docker volume rm`, видалення `vilno-data`. Це знищує SQLite з усіма сесіями.
+- Секрети на сервері — лише в `deploy/.env.prod` (у `.gitignore`, `chmod 600`), згенеровані на самому сервері, без виводу на екран. У git, образ, логи чи чат вони не потрапляють.
+- Ваги CV вшиваються в образ на build; на старті контейнер нічого не качає (перевірено з `--network none`).
+- Адреса quick tunnel змінюється при кожному перезапуску контейнера `tunnel`. Після рестарту беремо нову з `docker compose logs tunnel`.
+- Перезапуск і перезбірка дані не губить: SQLite у volume `vilno-data`. Лоти імпортуються на старті, лише якщо таблиця порожня.
 
 ## Команди
 ```
@@ -77,6 +86,10 @@ npm run build
 
 python scripts/import_lots.py     # CSV → SQLite (ідемпотентно)
 python scripts/reset_db.py        # drop + create_all + імпорт; запускати тільки після підтвердження людини
+
+docker build -t vilno-api:latest .                 # локальна збірка образу
+cd deploy && docker compose up -d --build         # на VPS (потрібен deploy/.env.prod)
+docker compose logs tunnel | grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' | tail -1
 ```
 (Уточнити після F0.)
 
