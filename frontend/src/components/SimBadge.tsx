@@ -1,11 +1,15 @@
+import { FlaskIcon } from '@phosphor-icons/react'
+
+/** Позначка «Симуляція»: нейтральна (не колір стану), іконка + текст. Ставимо на кожному блоці з симулятора. */
 export default function SimBadge({ children = 'Симуляція' }: { children?: string }) {
   return (
     <span
       style={{
-        display: 'inline-block', background: '#ffd54a', color: '#4a3600', fontSize: 12, fontWeight: 700,
-        padding: '2px 8px', borderRadius: 6, textTransform: 'uppercase', letterSpacing: 0.4, verticalAlign: 'middle',
+        display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--ink-2)', border: '1px solid var(--field-line)',
+        fontSize: 11, fontWeight: 600, padding: '1px 8px', borderRadius: 999, verticalAlign: 'middle', whiteSpace: 'nowrap', lineHeight: 1.6,
       }}
     >
+      <FlaskIcon size={12} weight="regular" aria-hidden />
       {children}
     </span>
   )
