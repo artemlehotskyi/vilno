@@ -107,6 +107,7 @@ input { caret-color: var(--ink); }
 
 /* Токени, додані при нормалізації інспектора */
 :root {
+  --warn-solid: #f2a93b; /* суцільний бурштиновий: темний текст ink, контраст 8,1:1 */
   --warn-tint: color-mix(in srgb, var(--warn) 12%, white);
   --field-line: color-mix(in srgb, var(--ink) 50%, white); /* межа поля ≥ 3:1 */
 }

@@ -6,7 +6,7 @@ import { formatPlate } from '../lib/plate'
 
 interface View {
   tone: 'free' | 'busy' | 'neutral' | 'warn'
-  solid?: boolean // суцільний червоний — лише для того, що вже сталося погано (не оплачено)
+  solid?: boolean // суцільна плашка — порушення: unpaid (червона, білий текст), closed_but_present (бурштинова, темний текст)
   Icon: ComponentType<IconProps>
   title: string
   lines: string[]
@@ -27,7 +27,7 @@ function view(r: ScanOut, lot: Lot): View {
         : { tone: 'free', Icon: CheckCircleIcon, title: 'Оплачено', lines: ['Сесія активна.'] }
     case 'closed_but_present':
       return {
-        tone: 'warn', Icon: ClockIcon, title: 'Сесію закрито, авто на місці',
+        tone: 'warn', solid: true, Icon: ClockIcon, title: 'Сесію закрито, авто на місці',
         lines: [`Закрито ${r.minutes_since_close} хв тому. Водій закрив сесію, але не поїхав.`],
       }
     case 'unpaid': {
@@ -44,12 +44,14 @@ function view(r: ScanOut, lot: Lot): View {
 }
 
 const TINT = { free: 'var(--free-tint)', busy: 'var(--busy-tint)', neutral: 'var(--neutral-tint)', warn: 'var(--warn-tint)' } as const
-const COLOR = { free: 'var(--free)', busy: 'var(--busy)', neutral: 'var(--neutral)', warn: 'var(--warn)' } as const
+const COLOR = { free: 'var(--free)', busy: 'var(--busy)', neutral: 'var(--ink-2)', warn: 'var(--warn-solid)' } as const
+// Текст на суцільній плашці: білий на червоному, темно-синій на бурштиновому
+const ON_SOLID = { free: '#fff', busy: '#fff', neutral: '#fff', warn: 'var(--ink)' } as const
 
 /** Вердикт скану: іконка + текст + колір, номер повторено, щоб було видно, до якого авто він належить. */
 export default function ScanResultCard({ result, lot, plate }: { result: ScanOut; lot: Lot; plate: string | null }) {
   const v = view(result, lot)
-  const fg = v.solid ? '#fff' : COLOR[v.tone]
+  const fg = v.solid ? ON_SOLID[v.tone] : COLOR[v.tone]
   return (
     <div>
       <div
@@ -63,7 +65,7 @@ export default function ScanResultCard({ result, lot, plate }: { result: ScanOut
           <div style={{ fontSize: 22, fontWeight: 600, lineHeight: 1.25, textWrap: 'balance' }}>{v.title}</div>
         </div>
         {v.lines.map((l) => (
-          <div key={l} style={{ marginTop: 10, fontSize: 15, fontWeight: 500, color: v.solid ? '#fff' : 'var(--ink)' }}>{l}</div>
+          <div key={l} style={{ marginTop: 10, fontSize: 15, fontWeight: 500, color: v.solid ? ON_SOLID[v.tone] : 'var(--ink)' }}>{l}</div>
         ))}
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'baseline', padding: '14px 0', borderBottom: '1px solid var(--line)' }}>
