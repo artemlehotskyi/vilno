@@ -5,6 +5,7 @@ import LotsMap from '../components/LotsMap'
 import MapLegend from '../components/MapLegend'
 import PhotoButton from '../components/PhotoButton'
 import PlateInput from '../components/PlateInput'
+import ReportNoSpace from '../components/ReportNoSpace'
 import SessionView from '../components/SessionView'
 import { canStart, type PhotoNote } from '../lib/photo'
 import { isValidPlate } from '../lib/plate'
@@ -135,6 +136,7 @@ export default function Driver() {
             >
               {selected.is_paid ? 'Припаркуватись тут' : 'Безкоштовно: сесія не потрібна'}
             </button>
+            {selected.is_paid && <ReportNoSpace key={selected.id} lotId={selected.id} />}
           </>
         ) : (
           <div style={{ color: '#666' }}>Оберіть майданчик на мапі, щоб почати паркування.</div>

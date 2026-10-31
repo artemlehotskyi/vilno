@@ -104,6 +104,8 @@ export interface DispatchRow {
   fine_uah: number
   expected_benefit_uah: number // СИМУЛЯЦІЯ
   decision: 'go' | 'route'
+  reports_1h: number // РЕАЛЬНІ скарги водіїв за останню годину
+  reports_confirmed_1h: number
 }
 
 export interface Dispatch {
@@ -138,3 +140,7 @@ export const recognizePhoto = (image: Blob) => {
   form.append('image', image, 'photo.jpg')
   return api<Recognition>('/recognize', { method: 'POST', body: form })
 }
+
+/** Скарга «місць насправді немає». Відповідь завжди {ok: true}: результат звірки клієнту не повідомляється. */
+export const sendReport = (lot_id: number, plate: string | null, client_id: string) =>
+  api<{ ok: true }>('/reports', { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ lot_id, plate, client_id }) })

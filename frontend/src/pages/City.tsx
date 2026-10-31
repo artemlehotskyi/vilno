@@ -62,6 +62,7 @@ export default function City() {
               <th style={th}>Неоплата <SimBadge /></th>
               <th style={th}>Вигода виїзду <SimBadge /></th>
               <th style={th}>Рішення</th>
+              <th style={th}>Сигнали за 1 год<br /><span style={{ fontWeight: 400 }}>усього / підтв. (реальні)</span></th>
             </tr>
           </thead>
           <tbody>
@@ -85,12 +86,21 @@ export default function City() {
                     <span style={{ background: '#e6e6e0', padding: '3px 10px', borderRadius: 6 }}>В маршруті</span>
                   )}
                 </td>
+                <td style={{ ...td, fontWeight: r.reports_confirmed_1h ? 700 : 400 }}>
+                  {r.reports_1h ? `${r.reports_1h} / ${r.reports_confirmed_1h}` : '—'}
+                  {r.reports_confirmed_1h > 0 && <span style={{ color: '#c0392b' }}> ↑</span>}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>* Зони — припущення команди за тарифом, в наборі їх немає.</div>
+      <div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>
+        * Зони — припущення команди за тарифом, в наборі їх немає.
+        <br />
+        Сигнали — реальні скарги водіїв «місць насправді немає» за останню годину. Підтверджений = вказаний номер не має активної
+        сесії на цьому майданчику. Такі лоти піднято вгору (↑). Сигнал не є штрафом: рішення після скану ухвалює інспектор.
+      </div>
     </div>
   )
 }

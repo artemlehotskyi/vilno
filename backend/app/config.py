@@ -26,6 +26,7 @@ class Settings:
     CLOSED_PRESENT_WINDOW_MIN: int = int(os.getenv("CLOSED_PRESENT_WINDOW_MIN", "240"))
     TRIP_COST_UAH: float = float(os.getenv("TRIP_COST_UAH", "200"))
     FINE_PAYMENT_PROB: float = float(os.getenv("FINE_PAYMENT_PROB", "0.63"))
+    REPORT_COOLDOWN_MIN: int = int(os.getenv("REPORT_COOLDOWN_MIN", "30"))  # одна скарга з клієнта на лот
 
     DEMO_CLOCK_START: str = os.getenv("DEMO_CLOCK_START", "2026-10-30T14:00:00+02:00")
     SIM_SEED: int = int(os.getenv("SIM_SEED", "31102026"))

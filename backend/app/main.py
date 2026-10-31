@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api import demo, lots, recognize, scans, sessions, stats
+from app.api import demo, lots, recognize, reports, scans, sessions, stats
 from app.config import settings
 from app.db import init_db
 from app.services import cv
@@ -27,6 +27,7 @@ app.include_router(sessions.router)
 app.include_router(scans.router)
 app.include_router(stats.router)
 app.include_router(recognize.router)
+app.include_router(reports.router)
 app.include_router(demo.router)
 
 

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.db import get_db
 from app.models import Lot
+from app.services import clock, reports
 from app.sim import dispatch
 from app.sim.occupancy import MEAN_OCCUPANCY, simulated_busy
 
@@ -24,6 +25,9 @@ class DispatchRow(BaseModel):
     fine_uah: float           # 20 × тариф
     expected_benefit_uah: float
     decision: str             # go / route
+    # РЕАЛЬНІ дані (не симуляція): скарги водіїв «місць немає» за останню годину
+    reports_1h: int = 0
+    reports_confirmed_1h: int = 0
 
 
 class DispatchOut(BaseModel):
@@ -38,6 +42,7 @@ class DispatchOut(BaseModel):
 @router.get("/dispatch", response_model=DispatchOut)
 def get_dispatch(db: Session = Depends(get_db)):
     seed = settings.SIM_SEED
+    signals = reports.signals_last_hour(db, clock.now(db))
     rows = []
     for lot in db.scalars(select(Lot).where(Lot.is_paid, Lot.places.is_not(None)).order_by(Lot.id)):
         cars = simulated_busy(lot.id, lot.places, seed)
@@ -48,8 +53,10 @@ def get_dispatch(db: Session = Depends(get_db)):
             tariff_per_hour=lot.tariff_per_hour, places=lot.places, cars=cars, unpaid_share=round(share, 4),
             fine_uah=dispatch.FINE_MULTIPLIER * lot.tariff_per_hour,
             expected_benefit_uah=round(benefit, 2), decision=dispatch.decide(benefit),
+            reports_1h=signals.get(lot.id, (0, 0))[0], reports_confirmed_1h=signals.get(lot.id, (0, 0))[1],
         ))
-    rows.sort(key=lambda r: r.expected_benefit_uah, reverse=True)
+    # Підтверджені сигнали піднімають лот угору; далі — за вигодою. Саму вигоду (симуляцію) не змінюємо.
+    rows.sort(key=lambda r: (r.reports_confirmed_1h, r.expected_benefit_uah), reverse=True)
     go = [r for r in rows if r.decision == "go"]
     return DispatchOut(
         is_simulated=True,
