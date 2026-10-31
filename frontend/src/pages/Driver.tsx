@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getLots, getSession, startSession, type Lot, type SessionOut } from '../api/client'
+import { getLots, getSession, getStreets, startSession, type Lot, type SessionOut, type Street } from '../api/client'
 import LotSummary from '../components/LotSummary'
 import LotsMap from '../components/LotsMap'
-import MapLegend from '../components/MapLegend'
+import LotPanel from '../components/LotPanel'
+import MapCaption from '../components/MapCaption'
 import PhotoButton from '../components/PhotoButton'
 import PlateInput from '../components/PlateInput'
-import ReportNoSpace from '../components/ReportNoSpace'
 import SessionView from '../components/SessionView'
 import { canStart, type PhotoNote } from '../lib/photo'
 import { isValidPlate } from '../lib/plate'
@@ -15,6 +15,9 @@ const SESSION_KEY = 'vilno.sessionId'
 
 export default function Driver() {
   const [lots, setLots] = useState<Lot[]>([])
+  const [streets, setStreets] = useState<Record<string, Street>>({})
+  const [tilesReady, setTilesReady] = useState(false)
+  const [lotsReady, setLotsReady] = useState(false)
   const [selected, setSelected] = useState<Lot | null>(null)
   const [entering, setEntering] = useState(false) // екран вводу номера
   const [plate, setPlate] = useState('')
@@ -24,13 +27,16 @@ export default function Driver() {
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    getLots().then(setLots).catch((e) => setError(e.message))
+    const t = setTimeout(() => setTilesReady(true), 5000) // тайли не прийшли (офлайн): не тримаємо індикатор вічно
+    getLots().then((l) => { setLots(l); setLotsReady(true) }).catch((e) => { setError(e.message); setLotsReady(true) })
+    getStreets().then(setStreets).catch(() => {}) // немає кешу → лінія через точки лота
     const id = localStorage.getItem(SESSION_KEY)
     if (id) {
       getSession(id)
         .then(setSession)
         .catch(() => localStorage.removeItem(SESSION_KEY))
     }
+    return () => clearTimeout(t)
   }, [])
 
   const newSession = useCallback(() => {
@@ -112,36 +118,23 @@ export default function Driver() {
   }
 
   // --- мапа + вибір майданчика ---
+  const loading = !(tilesReady && lotsReady)
   return (
-    <div style={{ position: 'absolute', inset: 0 }}>
-      <LotsMap lots={lots} selectedId={selected?.id} onSelect={setSelected} />
-      <MapLegend />
-      {error && <div style={{ ...errorBox, position: 'absolute', top: 8, left: 8, right: 8, zIndex: 1000 }}>Не вдалося завантажити: {error}</div>}
-      <div
-        style={{
-          position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 1000, background: '#fff',
-          borderRadius: '16px 16px 0 0', padding: '14px 16px 64px', boxShadow: '0 -2px 10px rgba(0,0,0,.2)',
-        }}
-      >
-        {selected ? (
-          <>
-            <LotSummary lot={selected} />
-            {selected.is_paid && selected.free_estimate != null && (
-              <div style={{ fontSize: 13, color: '#666', marginTop: 4 }}>Вільно ≈ {selected.free_estimate} (оцінка · симуляція)</div>
-            )}
-            <button
-              style={{ ...primaryBtn, marginTop: 10, opacity: selected.is_paid ? 1 : 0.5 }}
-              disabled={!selected.is_paid}
-              onClick={() => setEntering(true)}
-            >
-              {selected.is_paid ? 'Припаркуватись тут' : 'Безкоштовно: сесія не потрібна'}
-            </button>
-            {selected.is_paid && <ReportNoSpace key={selected.id} lotId={selected.id} />}
-          </>
-        ) : (
-          <div style={{ color: '#666' }}>Оберіть майданчик на мапі, щоб почати паркування.</div>
-        )}
+    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        {loading && <div className="map-loading" role="progressbar" aria-label="Завантаження мапи" />}
+        <LotsMap
+          lots={lots}
+          streets={streets}
+          selectedId={selected?.id}
+          onSelect={setSelected}
+          onDeselect={() => setSelected(null)}
+          onReady={() => setTilesReady(true)}
+        />
+        {error && <div style={{ ...errorBox, position: 'absolute', top: 8, left: 8, right: 8, zIndex: 1000 }}>Не вдалося завантажити: {error}</div>}
+        {selected && <LotPanel lot={selected} onPark={() => setEntering(true)} onClose={() => setSelected(null)} />}
       </div>
+      <MapCaption />
     </div>
   )
 }

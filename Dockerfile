@@ -34,6 +34,7 @@ RUN pip install torch==2.15.0 torchvision==0.29.2 --index-url https://download.p
 COPY backend/app backend/app
 COPY data/raw data/raw
 COPY data/geo_overrides.json data/geo_overrides.json
+COPY data/processed data/processed
 COPY --from=frontend /build/frontend/dist frontend/dist
 
 # Ваги вшиваємо: YOLO → /srv/vilno/models, fast-alpr → $HOME/.cache. Падаємо, якщо щось не завантажилось.

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { ClockIcon } from '@phosphor-icons/react'
 import { demoAdvance, demoReset, getClock } from '../api/client'
 import { formatKyivTime } from '../lib/format'
 
@@ -37,9 +38,9 @@ export default function DemoPanel() {
   }
 
   return (
-    <div style={{ position: 'fixed', right: 8, bottom: 8, zIndex: 2000, maxWidth: 'calc(100vw - 16px)' }}>
+    <div style={{ position: 'fixed', right: 8, bottom: 8, zIndex: 2000, maxWidth: 'calc(100vw - 16px)', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
       {open && (
-        <div style={{ background: '#fff', border: '1px solid #ccc', borderRadius: 12, padding: 12, marginBottom: 6, width: 300, boxShadow: '0 4px 16px rgba(0,0,0,.25)' }}>
+        <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 12, padding: 12, marginBottom: 6, width: 300, boxShadow: '0 4px 16px rgba(11,31,68,.12)' }}>
           <div style={{ fontWeight: 600, marginBottom: 6 }}>Демо-годинник</div>
           <input
             type="password" value={token} onChange={(e) => saveToken(e.target.value)} placeholder="X-Demo-Token"
@@ -63,9 +64,9 @@ export default function DemoPanel() {
       )}
       <button
         onClick={() => setOpen((o) => !o)}
-        style={{ float: 'right', borderRadius: 22, padding: '0 14px', background: '#1a1a1a', color: '#fff', border: 0 }}
+        style={{ borderRadius: 22, padding: '0 14px', background: 'var(--ink)', color: '#fff', border: 0, fontSize: 13, fontWeight: 500 }}
       >
-        🕑 {now ? formatKyivTime(now) : '…'} · демо
+        <ClockIcon size={16} weight="regular" style={{ verticalAlign: -3, marginRight: 6 }} />{now ? formatKyivTime(now) : '…'} · демо
       </button>
     </div>
   )

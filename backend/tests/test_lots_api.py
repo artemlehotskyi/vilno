@@ -32,6 +32,26 @@ def test_lot_404(client):
 def test_occupancy_deterministic_and_bounded():
     assert occupancy(5, 31102026) == occupancy(5, 31102026)
     assert occupancy(5, 31102026) != occupancy(6, 31102026)
-    assert 0.2 <= occupancy(7, 1) <= 0.95
+    assert 0.2 <= occupancy(7, 1) <= 1.0
     assert simulated_busy(1, None, 1) is None
     assert 0 <= simulated_busy(1, 10, 1) <= 10
+
+
+def test_sim_profile_gives_mix_of_free_and_full(client):
+    """Демо-мапа: серед платних лотів є і з вільними місцями, і повністю зайняті (через SIM_OCC_*, не хардкод)."""
+    paid = [x for x in client.get("/api/lots").json() if x["is_paid"]]
+    assert any(x["free_estimate"] == 0 for x in paid)
+    assert sum(x["free_estimate"] > 0 for x in paid) > len(paid) // 2
+
+
+def test_open_now_follows_server_clock(client):
+    """Демо-час: пʼятниця 14:00. Лот 38 (Вт–Нд 09–17) відкритий, безкоштовні мають None."""
+    lots = {x["id"]: x for x in client.get("/api/lots").json()}
+    assert lots[38]["open_now"] is True
+    assert lots[1]["open_now"] is None
+
+
+def test_streets_endpoint_returns_dict(client):
+    r = client.get("/api/streets")
+    assert r.status_code == 200
+    assert isinstance(r.json(), dict)

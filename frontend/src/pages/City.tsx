@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getDispatch, type Dispatch } from '../api/client'
 import SimBadge from '../components/SimBadge'
-import { ZONE_COLOR, ZONE_LABEL, formatMoney } from '../lib/format'
+import { ZONE_LABEL, formatMoney } from '../lib/format'
 import { card, errorBox } from '../lib/ui'
 
 const th = { textAlign: 'left', padding: '8px 10px', fontSize: 12, color: '#555', whiteSpace: 'nowrap', borderBottom: '2px solid #ddd' } as const
@@ -73,7 +73,7 @@ export default function City() {
                   <div style={{ fontSize: 12, color: '#777' }}>{r.operator_name}</div>
                 </td>
                 <td style={td}>
-                  <span style={{ color: ZONE_COLOR[r.zone], fontWeight: 600 }}>● {ZONE_LABEL[r.zone]}</span>
+                  <span style={{ fontWeight: 600 }}>{ZONE_LABEL[r.zone]}</span>
                 </td>
                 <td style={td}>{r.tariff_per_hour} грн</td>
                 <td style={td}>{r.cars} з {r.places}</td>

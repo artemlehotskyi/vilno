@@ -13,7 +13,7 @@ export default function ReportNoSpace({ lotId }: { lotId: number }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (sent) return <div style={{ background: '#e3f4e8', padding: 10, borderRadius: 8, marginTop: 8 }}>Дякуємо, сигнал передано.</div>
+  if (sent) return <div style={{ background: 'var(--free-tint)', color: 'var(--free)', fontWeight: 500, fontSize: 14, padding: 10, borderRadius: 8, marginTop: 8 }}>Дякуємо, сигнал передано.</div>
   if (!open) {
     return (
       <button style={{ ...secondaryBtn, marginTop: 8 }} onClick={() => setOpen(true)}>

@@ -1,11 +1,76 @@
 :root {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color: #1a1a1a;
-  background: #fafaf7;
-  line-height: 1.4;
+  --bg: #ffffff;
+  --ink: #0b1f44;
+  --ink-2: #4a5877;
+  --line: #e3e7ef;
+  --free: #17784b;
+  --busy: #c0392b;
+  --disabled-places: #1f5fbf;
+  --neutral: #667085;
+  --warn: #9a5b00;
+  --free-tint: color-mix(in srgb, var(--free) 12%, white);
+  --busy-tint: color-mix(in srgb, var(--busy) 10%, white);
+  --neutral-tint: color-mix(in srgb, var(--neutral) 10%, white);
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --radius: 12px;
+
+  font-family: 'Montserrat', system-ui, sans-serif;
+  font-weight: 400;
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
 }
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
 body { -webkit-tap-highlight-color: transparent; }
-button, input { font: inherit; }
-button { min-height: 44px; }
+button, input, select { font: inherit; color: inherit; }
+button { min-height: 44px; cursor: pointer; }
+::selection { background: color-mix(in srgb, var(--ink) 16%, white); }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+input { caret-color: var(--ink); }
+
+/* Мапа: тайли OSM приглушені, щоб кольори станів читалися першими */
+.leaflet-container { font-family: inherit; background: #f2f4f8; }
+.leaflet-tile-pane { filter: grayscale(0.85) contrast(0.92) brightness(1.04); }
+.leaflet-control-attribution { font-size: 10px; background: rgba(255, 255, 255, 0.85) !important; color: var(--ink-2); }
+.leaflet-control-attribution a { color: var(--ink-2); }
+.leaflet-control-zoom { border: 1px solid var(--line) !important; border-radius: var(--radius) !important; overflow: hidden; }
+.leaflet-control-zoom a { color: var(--ink) !important; border-bottom-color: var(--line) !important; }
+
+/* Маркери майданчиків: форма + число/іконка, колір не єдиний носій стану */
+.lot-marker { background: none; border: 0; outline: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.lot-marker .shape {
+  display: flex; align-items: center; justify-content: center; background: #fff;
+  border: 2px solid var(--c); color: var(--c); font-weight: 600; font-size: 14px; line-height: 1;
+  transition: transform 160ms var(--ease);
+}
+.lot-marker .shape.free { width: 32px; height: 32px; border-radius: 50%; background: var(--free-tint); --c: var(--free); }
+.lot-marker .shape.busy { width: 28px; height: 28px; border-radius: 8px; background: var(--busy-tint); --c: var(--busy); }
+.lot-marker .shape.neutral { width: 24px; height: 24px; border-radius: 50%; background: var(--neutral-tint); --c: var(--neutral); }
+.lot-marker.selected .shape { transform: scale(1.18); outline: 2px solid var(--ink); outline-offset: 2px; }
+.lot-marker:focus-visible .shape { outline: 2px solid var(--ink); outline-offset: 2px; }
+.lot-marker.enter .shape { animation: marker-in 240ms var(--ease) both; }
+@keyframes marker-in { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
+
+/* Індикатор завантаження мапи */
+.map-loading { position: absolute; top: 0; left: 0; right: 0; height: 2px; overflow: hidden; z-index: 1100; background: var(--line); }
+.map-loading::after {
+  content: ''; position: absolute; inset: 0 auto 0 0; width: 35%; background: var(--ink);
+  animation: map-loading 1s var(--ease) infinite;
+}
+@keyframes map-loading { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+
+/* Панель майданчика */
+.lot-panel { animation: panel-in 240ms var(--ease) both; }
+.lot-panel-body { animation: fade-in 160ms var(--ease) both; }
+@keyframes panel-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .lot-panel { animation: fade-in 120ms linear both; }
+  .lot-marker.enter .shape { animation: fade-in 120ms linear both; }
+  .lot-marker .shape { transition: none; }
+  .map-loading::after { animation: none; width: 100%; opacity: 0.4; }
+}

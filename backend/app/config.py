@@ -33,6 +33,10 @@ class Settings:
 
     DEMO_CLOCK_START: str = os.getenv("DEMO_CLOCK_START", "2026-10-30T14:00:00+02:00")
     SIM_SEED: int = int(os.getenv("SIM_SEED", "31102026"))
+    # Профіль симульованої зайнятості (припущення): середнє, розкид між майданчиками, стеля (1.0 = можуть бути повністю зайняті)
+    SIM_OCC_MEAN: float = float(os.getenv("SIM_OCC_MEAN", "0.7"))
+    SIM_OCC_SPREAD: float = float(os.getenv("SIM_OCC_SPREAD", "0.35"))
+    SIM_OCC_MAX: float = float(os.getenv("SIM_OCC_MAX", "1.0"))
 
 
 settings = Settings()

@@ -13,18 +13,19 @@ const tabs = [
 export default function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <nav style={{ display: 'flex', gap: 4, padding: 8, background: '#fff', borderBottom: '1px solid #ddd' }}>
-        <strong style={{ alignSelf: 'center', marginRight: 8 }}>VILNO</strong>
+      <nav style={{ display: 'flex', gap: 4, padding: '4px 12px', background: 'var(--bg)', borderBottom: '1px solid var(--line)', alignItems: 'center' }}>
+        <strong style={{ marginRight: 12, fontWeight: 600, letterSpacing: 1.5 }}>VILNO</strong>
         {tabs.map((t) => (
           <NavLink
             key={t.to}
             to={t.to}
             style={({ isActive }) => ({
-              padding: '10px 12px',
-              borderRadius: 8,
+              padding: '12px 10px',
               textDecoration: 'none',
-              color: isActive ? '#fff' : '#1a1a1a',
-              background: isActive ? '#1a1a1a' : 'transparent',
+              fontSize: 14,
+              fontWeight: isActive ? 600 : 500,
+              color: isActive ? 'var(--ink)' : 'var(--ink-2)',
+              borderBottom: `2px solid ${isActive ? 'var(--ink)' : 'transparent'}`,
             })}
           >
             {t.label}

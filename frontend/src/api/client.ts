@@ -24,10 +24,20 @@ export interface Lot {
   opening_hours: { days: number[]; from: string; to: string } | null
   lat: number
   lon: number
+  points: [number, number][]
   free_estimate: number | null // СИМУЛЯЦІЯ
+  open_now: boolean | null // серверний час; null для безкоштовних
 }
 
 export const getLots = () => api<Lot[]>('/lots')
+
+/** Ділянка вулиці майданчика (кеш з OSM, збудований на імпорті). Немає запису → лінія через lot.points. */
+export interface Street {
+  source: 'osm' | 'points'
+  name: string | null
+  lines: [number, number][][]
+}
+export const getStreets = () => api<Record<string, Street>>('/streets')
 
 export interface DayPart {
   day: string

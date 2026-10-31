@@ -15,19 +15,12 @@ export function formatHours(h: Lot['opening_hours']): string {
   return h ? `${formatDays(h.days)} ${h.from}–${h.to}` : 'години не вказані'
 }
 
+// Зони виведені з ціни (припущення), у наборі їх немає. Колір зони на мапі не кодуємо
 export const ZONE_LABEL: Record<Zone, string> = {
-  center: 'центр',
-  standard: 'стандарт',
-  market: 'ринки/приватні',
+  center: 'Центр',
+  standard: 'Стандарт',
+  market: 'Ринки/приватні',
 }
-
-// Колір зони: платні за зоною, безкоштовні сірі
-export const ZONE_COLOR: Record<Zone, string> = {
-  center: '#c0392b',
-  standard: '#d98100',
-  market: '#2563c9',
-}
-export const FREE_COLOR = '#8a8f98'
 
 export function formatMoney(n: number): string {
   const text = n.toLocaleString('uk-UA', { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 })
