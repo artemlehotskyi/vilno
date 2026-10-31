@@ -1,0 +1,24 @@
+# Секрети й локальні дані — ніколи в образ
+.env
+.env.*
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+
+# Залежності й артефакти (усе ставиться/збирається в Dockerfile)
+**/.venv
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+frontend/dist
+models
+
+# Не потрібне в образі
+.git
+.obsidian
+**/.DS_Store
+backend/tests
+presentation-style
+presentation-style.zip
+*.png
+deploy
