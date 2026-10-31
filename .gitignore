@@ -25,3 +25,6 @@ frontend/dist/
 # ОС / редактори
 .DS_Store
 .obsidian/
+
+# Фото авто з номерами: не в публічний репозиторій
+PHOTOS_BOYS/
