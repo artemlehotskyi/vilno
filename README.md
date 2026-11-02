@@ -151,8 +151,6 @@ The project documents are written in Ukrainian.
 
 | File | About |
 |---|---|
-| [`ABOUT.md`](ABOUT.md) | Idea, problem, economics, open data |
-| [`PLAN.md`](PLAN.md) | Hackathon prototype scope, features, accepted simplifications |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Pricing and status formulas, test cases |
 | [`DATA.md`](DATA.md) | Dataset analysis |
 | [`DESIGN.md`](DESIGN.md) | Tokens, colour rules, motion |
